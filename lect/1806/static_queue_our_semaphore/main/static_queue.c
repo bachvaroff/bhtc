@@ -124,16 +124,15 @@ static our_queue q;
 
 void prod(void *_arg) {
 	our_data val;
+	unsigned int arg = (unsigned int)_arg;
 	int j;
-	
-	(void)_arg;
 	
 	val.a = 0;
 	val.b = 0;
 	
 	while (1) {
 		for (j = 0; j < 16; j++) {
-			printf("enqueue %d %hd\n", val.a, val.b);
+			printf("enqueue %u %d %hd\n", arg, val.a, val.b);
 			enqueue(&q, &val);
 			val.a++;
 			val.b++;
