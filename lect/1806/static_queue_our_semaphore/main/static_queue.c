@@ -51,8 +51,7 @@ static void semaphore_give(our_semaphore *s) {
 typedef struct our_queue {
 	our_semaphore countsem;
 	our_semaphore spacesem;
-	StaticSemaphore_t lock;
-	SemaphoreHandle_t lock_hnd;
+	our_semaphore lock;
 	size_t size;
 	size_t datum_size;
 	uint8_t *data;
@@ -65,7 +64,7 @@ static void queue_constructor(our_queue *q, size_t size, size_t datum_size, uint
 	q->data = data;
 	q->in = q->out = 0u;
 
-	q->lock_hnd = xSemaphoreCreateMutexStatic(&q->lock);
+	semaphore_constructor(&q->lock, 1u, 1u);
 	semaphore_constructor(&q->countsem, 0u, size);
 	semaphore_constructor(&q->spacesem, size, size);
 	
@@ -77,14 +76,14 @@ static void enqueue(our_queue *q, void *value) {
 	
 	semaphore_take(&q->spacesem);
 	
-	xSemaphoreTake(q->lock_hnd, portMAX_DELAY);
+	semaphore_take(&q->lock);
 #if 0
 	index = (((q->in)++) & (q->size - 1u)) * q->datum_size;
 #else
 	index = (((q->in)++) % q->size) * q->datum_size;
 #endif
 	(void)memcpy(q->data + index, value, q->datum_size);
-	xSemaphoreGive(q->lock_hnd);
+	semaphore_give(&q->lock);
 	
 	semaphore_give(&q->countsem);
 	
@@ -96,14 +95,14 @@ static void dequeue(our_queue *q, void *value) {
 	
 	semaphore_take(&q->countsem);
 	
-	xSemaphoreTake(q->lock_hnd, portMAX_DELAY);
+	semaphore_take(&q->lock);
 #if 0
 	index = (((q->out)++) & (q->size - 1u)) * q->datum_size;
 #else
 	index = (((q->out)++) % q->size) * q->datum_size;
 #endif
 	(void)memcpy(value, q->data + index, q->datum_size);
-	xSemaphoreGive(q->lock_hnd);
+	semaphore_give(&q->lock);
 	
 	semaphore_give(&q->spacesem);
 	
