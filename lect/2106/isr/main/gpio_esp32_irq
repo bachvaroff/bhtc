@@ -1,0 +1,11 @@
+This test code shows how to configure a gpio and how to use gpio interrupts.
+
+GPIO18: output
+GPIO19: output
+GPIO4: input, pulled up, interrupts from the rising and falling edges
+GPIO5: input, pulled up, interrupt from the rising edge.
+
+Test:
+Connect GPIO18 to GPIO4
+Connect GPIO19 to GPIO5
+Generate pulses on GPIO18 / GPIO19, which trigger interrupts on GPIO4 / GPIO5
